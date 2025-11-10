@@ -79,8 +79,8 @@ st.markdown(f"""
 warnings.filterwarnings("ignore", category=UserWarning, module='pkg_resources')
 
 
-st.title("SOW Generator — Single Click Word SOW")
-st.markdown("Fill fields below and click **Generate SOW**. Uses a Word template with Jinja placeholders.")
+# st.title("SOW Generator — Single Click Word SOW")
+# st.markdown("Fill fields below and click **Generate SOW**. Uses a Word template with Jinja placeholders.")
 
 # --- Upload or choose template ---
 template_file = st.file_uploader("Upload client Word template (.docx)", type=["docx"])
