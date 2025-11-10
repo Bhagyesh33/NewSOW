@@ -8,7 +8,7 @@ import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, module='pkg_resources')
 
-st.set_page_config(page_title="SOW Generator", layout="centered")
+st.set_page_config(page_title="SOW Generator", layout="wide")
 st.title("SOW Generator — Single Click Word SOW")
 st.markdown("Fill fields below and click **Generate SOW**. Uses a Word template with Jinja placeholders.")
 
@@ -16,8 +16,21 @@ st.markdown("Fill fields below and click **Generate SOW**. Uses a Word template 
 template_file = st.file_uploader("Upload client Word template (.docx)", type=["docx"])
 
 # --- Basic fields ---
+Client_Name = st.selectbox(
+    "Select Client",
+    ("BSC", "Abiomed", "Cognex", "Itaros")      
+)
+
 sow_num = st.text_input("SOW Number", "1234")
-sow_name = st.text_input("SOW Name", "SOW - Implementation")
+
+colA, colB = st.columns([1, 1])
+with colA:
+    option = st.selectbox(
+    "Select Project Type",
+    ("Fixed Fee", "T&M")      
+)
+with colB:
+    sow_name = st.text_input("SOW Name", "SOW - Implementation")
 start_date = st.date_input("Start Date", date.today())
 end_date = st.date_input("End Date", date.today())
 pm_client = st.text_input("PM Client", "John Client")
@@ -46,38 +59,39 @@ workdays = networkdays(start_date, end_date)
 st.write(f"📅 Total working days (Mon–Fri) between selected dates: **{workdays}**")
 
 # --- Resources Table ---
-st.subheader("Resource Details")
+if option == "T&M":
+    st.subheader("Resource Details")
 
-resources_df = st.data_editor(
-    pd.DataFrame(
-        columns=[
-            "Role", "Location", "Start Date", "End Date",
-            "Allocation %", "Hrs/Day", "Rate/hr ($)"
-        ],
-	data=[[ "", "", start_date, end_date, 100, 8, 100 ]]
-    ),
-    num_rows="dynamic",
-    key="resources_table"
-)
+    resources_df = st.data_editor(
+        pd.DataFrame(
+            columns=[
+                "Role", "Location", "Start Date", "End Date",
+                "Allocation %", "Hrs/Day", "Rate/hr ($)"
+            ],
+        data=[[ "", "", start_date, end_date, 100, 8, 100 ]]
+        ),
+        num_rows="dynamic",
+        key="resources_table"
+    )
 
-# --- Calculate Estimated $ per row ---
-if not resources_df.empty:
-    def calc_value(row):
-        try:
-            start = pd.to_datetime(row["Start Date"])
-            end = pd.to_datetime(row["End Date"])
-            days = len(pd.bdate_range(start, end))
-            return round(days * (row["Allocation %"]/100) * row["Hrs/Day"] * row["Rate/hr ($)"], 2)
-        except Exception:
-            return 0.0
+    # --- Calculate Estimated $ per row ---
+    if not resources_df.empty:
+        def calc_value(row):
+            try:
+                start = pd.to_datetime(row["Start Date"])
+                end = pd.to_datetime(row["End Date"])
+                days = len(pd.bdate_range(start, end))
+                return round(days * (row["Allocation %"]/100) * row["Hrs/Day"] * row["Rate/hr ($)"], 2)
+            except Exception:
+                return 0.0
 
-    resources_df["Estimated $"] = resources_df.apply(calc_value, axis=1)
-    st.dataframe(resources_df)
+        resources_df["Estimated $"] = resources_df.apply(calc_value, axis=1)
+        st.dataframe(resources_df)
 
 # --- Total Contract Value ---
-currency_value = resources_df["Estimated $"].sum()
-currency_value_str = f"${currency_value:,.2f}"
-st.write(f"💰 Total Contract Value: **{currency_value_str}**")
+    currency_value = resources_df["Estimated $"].sum()
+    currency_value_str = f"${currency_value:,.2f}"
+    st.write(f"💰 Total Contract Value: **{currency_value_str}**")
 
 # --- Generate Word SOW ---
 if st.button("Generate SOW Document"):
