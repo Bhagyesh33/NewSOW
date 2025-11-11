@@ -12,9 +12,6 @@ import base64
 st.set_page_config(page_title="SOW Generator", layout="wide")
 # --- Display UI Header ---
 
-
-st.set_page_config(layout="wide")
-
 # --- Convert local logo to base64 so HTML <img> can display it ---
 def get_base64_image(image_path):
     with open(image_path, "rb") as img_file:
@@ -97,7 +94,7 @@ colA, colB = st.columns([1, 1])
 with colA:
     option = st.selectbox(
     "Select Project Type",
-    ("Fixed Fee", "T&M")      
+    ("Fixed Fee", "T&M", "Change Order")      
 )
 with colB:
     sow_name = st.text_input("SOW Name", "SOW - Implementation")
@@ -117,6 +114,8 @@ mg_client = st.text_input("Mgmt Client", "Mgmt Client")
 mg_sp = st.text_input("Mgmt Service Provider", "Umang Naik")
 scope_text = st.text_area("Scope / Responsibilities", "Describe scope here...")
 ser_del = st.text_area("Services / Deliverables", "Describe Services/Del. here...")
+if option == "Fixed Fee":
+    Fees_al = st.text_input("Fees", "100")
 
 # --- Format dates ---
 generated_date = datetime.today().strftime("%B %d, %Y")
@@ -171,6 +170,64 @@ if option == "T&M":
     currency_value_str = f"${currency_value:,.2f}"
     st.write(f"💰 Total Contract Value: **{currency_value_str}**")
 
+if option == "Fixed Fee":
+    st.subheader("Milestone Schedule / Payment Breakdown")
+
+    # Convert Fees to numeric
+    try:
+        total_fees = float(Fees_al)
+    except:
+        total_fees = 0
+
+    default_data = [
+        ["1", "", date.today(), ""]
+    ]
+
+    # ✅ Editable table (NO Net Payment here)
+    milestone_input_df = st.data_editor(
+        pd.DataFrame(
+            default_data,
+            columns=[
+                "Milestone #",
+                "Services / Deliverables",
+                "Milestone Due Date",
+                "Payment Allocation (%)"
+            ]
+        ),
+        num_rows="dynamic",
+        key="milestone_table"
+    )
+
+    # ✅ Calculate Net Payment column separately
+    milestone_df = milestone_input_df.copy()
+
+    def calc_net(row):
+        try:
+            alloc = float(row["Payment Allocation (%)"])
+            return round(total_fees * (alloc / 100), 2)
+        except:
+            return 0
+
+    milestone_df["Net Milestone Payment ($)"] = milestone_df.apply(calc_net, axis=1)
+
+    # ✅ Show final results
+    st.write("🔹 Calculated Milestones")
+    st.dataframe(milestone_df)
+
+    total_payment = milestone_df["Net Milestone Payment ($)"].sum()
+    st.write(f"✅ Total Net Milestone Payment: **${total_payment:,.2f}**")
+    # Fix column keys for Jinja compatibility
+    milestone_df = milestone_df.rename(columns={
+        "Milestone #": "milestone_no",
+        "Services / Deliverables": "services",
+        "Milestone Due Date": "due_date",
+        "Payment Allocation (%)": "allocation",
+        "Net Milestone Payment ($)": "net_pay"
+    })
+
+
+
+
 # --- Generate Word SOW ---
 if st.button("Generate SOW Document"):
 
@@ -183,23 +240,45 @@ if st.button("Generate SOW Document"):
         with open(template_path, "wb") as f:
             f.write(template_file.getbuffer())
 
-        # --- Context for template ---
-        context = {
-            "sow_num": sow_num,
-            "sow_name": sow_name,
-            "pm_client": pm_client,
-            "pm_SP": pm_sp,
-            "mg_client": mg_client,
-            "mg_sp": mg_sp,
-            "ser_del": ser_del,
-            "scope_text": scope_text,
-            "start_date": start_str,
-            "end_date": end_str,
-            "resources": resources_df.to_dict(orient="records"),
-            "generated_date": generated_date,
-            "currency_value_str": currency_value_str,
-            "currency_value": currency_value
-        }
+        if option == "T&M":
+        # --- Context for t&m template ---
+            context = {
+                "sow_num": sow_num,
+                "sow_name": sow_name,
+                "pm_client": pm_client,
+                "pm_SP": pm_sp,
+                "mg_client": mg_client,
+                "mg_sp": mg_sp,
+                "ser_del": ser_del,
+                "scope_text": scope_text,
+                "start_date": start_str,
+                "end_date": end_str,
+                "resources": resources_df.to_dict(orient="records"),
+                "generated_date": generated_date,
+                "currency_value_str": currency_value_str,
+                "currency_value": currency_value
+            }
+
+        if option == "Fixed Fee":
+        # --- Context for fixedfee template ---
+            context = {
+                "sow_num": sow_num,
+                "sow_name": sow_name,
+                "pm_client": pm_client,
+                "pm_SP": pm_sp,
+                "mg_client": mg_client,
+                "mg_sp": mg_sp,
+                "ser_del": ser_del,
+                "scope_text": scope_text,
+                "start_date": start_str,
+                "end_date": end_str,
+                # "resources": resources_df.to_dict(orient="records"),
+                "generated_date": generated_date,
+                # "currency_value_str": currency_value_str,
+                # "currency_value": currency_value
+                "milestones": milestone_df.to_dict(orient="records"),
+                "milestone_total": total_payment
+            }
 
         # --- Render Word template ---
         doc = DocxTemplate(template_path)
