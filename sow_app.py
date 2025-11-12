@@ -109,17 +109,25 @@ Client_Name = st.selectbox(
     "Select Client",
     ("BSC", "Abiomed", "Cognex", "Itaros")      
 )
-
-sow_num = st.text_input("SOW Number", "1234")
-
-colA, colB = st.columns([1, 1])
-with colA:
-    option = st.selectbox(
+option = st.selectbox(
     "Select Project Type",
     ("Fixed Fee", "T&M", "Change Order")      
 )
+
+if option == "Change Order":
+    Change = st.text_input("Change Order", "10")
+colA, colB = st.columns([1, 1])
+with colA:
+    sow_num = st.text_input("SOW Number", "1234")
 with colB:
     sow_name = st.text_input("SOW Name", "SOW - Implementation")
+
+if option == "Change Order":
+    colA, colB = st.columns([1, 1])
+with colA:
+    sow_start_date = st.date_input("SOW Start Date", date.today())
+with colB:
+    sow_end_date = st.date_input("SOW End Date", date.today())
 
 colA, colB = st.columns([1, 1])
 with colA:
@@ -139,10 +147,21 @@ ser_del = st.text_area("Services / Deliverables", "Describe Services/Del. here..
 if option == "Fixed Fee":
     Fees_al = st.text_input("Fees", "100")
 
+if option == "Change Order":
+    colA, colB = st.columns([1, 1])
+    with colA:
+        Fees_co = st.text_input("Change Order Fees", "100")
+    with colB:
+        Fees_sow = st.text_input("SOW Fees", "100")  
+    
+    difference = float(Fees_co) - float(Fees_sow)
+
 # --- Format dates ---
 generated_date = datetime.today().strftime("%B %d, %Y")
 start_str = start_date.strftime("%B %d, %Y")
 end_str = end_date.strftime("%B %d, %Y")
+sow_str = sow_start_date.strftime("%B %d, %Y")
+sow_end = sow_end_date.strftime("%B %d, %Y")
 
 # --- Helper to calculate working days (like Excel NETWORKDAYS) ---
 def networkdays(start_date, end_date):
@@ -301,6 +320,22 @@ if st.button("Generate SOW Document"):
                 "milestones": milestone_df.to_dict(orient="records"),
                 "milestone_total": total_payment,
                 "Fees" : Fees_al
+            }
+
+        if option == "Change Order":
+        # --- Context for fixedfee template ---
+            context = {
+                "Change": Change,
+                "sow_num": sow_num,
+                "sow_name": sow_name,
+                "scope_text": scope_text,
+                "start_date": start_str,
+                "end_date": end_str,
+                "sow_end" : sow_end,
+                "sow_str" : sow_str,
+                "Fees_co" : Fees_co,
+                "Fees_sow" : Fees_sow,
+                "difference" : difference
             }
 
         # --- Render Word template ---
