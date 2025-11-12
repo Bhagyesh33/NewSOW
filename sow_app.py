@@ -10,6 +10,26 @@ import base64
 
 
 st.set_page_config(page_title="SOW Generator", layout="wide")
+st.markdown("""
+<style>
+/* Hide Streamlit default header, footer, and menu */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* Remove top padding Streamlit leaves behind */
+div.block-container {
+    padding-top: 0rem;
+    padding-bottom: 1rem;
+}
+
+/* Optional: make app slightly wider */
+section.main > div {
+    padding-top: 0rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- Display UI Header ---
 
 # --- Convert local logo to base64 so HTML <img> can display it ---
@@ -80,6 +100,8 @@ warnings.filterwarnings("ignore", category=UserWarning, module='pkg_resources')
 # st.markdown("Fill fields below and click **Generate SOW**. Uses a Word template with Jinja placeholders.")
 
 # --- Upload or choose template ---
+st.markdown("<br>", unsafe_allow_html=True)
+
 template_file = st.file_uploader("Upload client Word template (.docx)", type=["docx"])
 
 # --- Basic fields ---
