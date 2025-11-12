@@ -277,7 +277,8 @@ if st.button("Generate SOW Document"):
                 # "currency_value_str": currency_value_str,
                 # "currency_value": currency_value
                 "milestones": milestone_df.to_dict(orient="records"),
-                "milestone_total": total_payment
+                "milestone_total": total_payment,
+                "Fees" : Fees_al
             }
 
         # --- Render Word template ---
