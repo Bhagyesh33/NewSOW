@@ -30,6 +30,13 @@ section.main > div {
 </style>
 """, unsafe_allow_html=True)
 
+# --- Initialize session state ---
+if 'should_increment_on_download' not in st.session_state:
+    st.session_state.should_increment_on_download = False
+if 'generated_file_path' not in st.session_state:
+    st.session_state.generated_file_path = None
+if 'file_data' not in st.session_state:
+    st.session_state.file_data = None
 # --- Display UI Header ---
 
 # --- Convert local logo to base64 so HTML <img> can display it ---
@@ -95,6 +102,34 @@ st.markdown(f"""
 
 warnings.filterwarnings("ignore", category=UserWarning, module='pkg_resources')
 
+def get_next_sow_number(peek_only=False):
+    counter_file = "sow_counter.txt"
+    start_num = 1000  # starting number
+
+    # Ensure the file exists
+    if not os.path.exists(counter_file):
+        with open(counter_file, "w") as f:
+            f.write(str(start_num))
+
+    # Read the current number safely
+    try:
+        with open(counter_file, "r") as f:
+            content = f.read().strip()
+            current = int(content) if content else start_num
+    except ValueError:
+        current = start_num
+
+    if peek_only:
+        # Just preview, don’t increment file
+        return current
+
+    # If not peeking, increment and save
+    next_num = current + 1
+    with open(counter_file, "w") as f:
+        f.write(str(next_num))
+
+    return current
+
 
 # st.title("SOW Generator — Single Click Word SOW")
 # st.markdown("Fill fields below and click **Generate SOW**. Uses a Word template with Jinja placeholders.")
@@ -118,7 +153,11 @@ if option == "Change Order":
     Change = st.text_input("Change Order", "10")
 colA, colB = st.columns([1, 1])
 with colA:
-    sow_num = st.text_input("SOW Number", "1234")
+    auto_sow_num = get_next_sow_number(peek_only=True)
+    sow_num = st.text_input("SOW Number", str(auto_sow_num))
+
+
+
 with colB:
     sow_name = st.text_input("SOW Name", "SOW - Implementation")
 
@@ -356,10 +395,28 @@ if st.button("Generate SOW Document"):
         doc.save(output_file)
 
         st.success(f"SOW Document generated: {output_file}")
-        with open(output_file, "rb") as f:
-            st.download_button(
-                "📄 Download SOW",
-                data=f,
-                file_name=os.path.basename(output_file),
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            )
+        # Store file data in session state for download
+    with open(output_file, "rb") as f:
+        st.session_state.file_data = f.read()
+    
+    st.session_state.generated_file_path = output_file
+    st.session_state.should_increment_on_download = True
+    # --- END OF REPLACEMENT ---
+
+# --- ADD THIS NEW SECTION AFTER THE GENERATION BUTTON BLOCK ---
+# --- Show download button if file is generated ---
+if st.session_state.should_increment_on_download and st.session_state.file_data:
+    # Create download button that increments counter when clicked
+    if st.download_button(
+        "📄 Download SOW",
+        data=st.session_state.file_data,
+        file_name=os.path.basename(st.session_state.generated_file_path),
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        key="download_sow"
+    ):
+        # This block runs when download is clicked
+        if st.session_state.should_increment_on_download:
+            get_next_sow_number(peek_only=False)  # Increment counter
+            st.session_state.should_increment_on_download = False  # Reset flag
+            st.session_state.file_data = None  # Clear file data
+            st.rerun()  # Refresh to show updated SOW number
