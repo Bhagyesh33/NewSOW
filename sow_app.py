@@ -124,10 +124,10 @@ with colB:
 
 if option == "Change Order":
     colA, colB = st.columns([1, 1])
-with colA:
-    sow_start_date = st.date_input("SOW Start Date", date.today())
-with colB:
-    sow_end_date = st.date_input("SOW End Date", date.today())
+    with colA:
+        sow_start_date = st.date_input("SOW Start Date", date.today())
+    with colB:
+        sow_end_date = st.date_input("SOW End Date", date.today())
 
 colA, colB = st.columns([1, 1])
 with colA:
@@ -137,11 +137,16 @@ with colB:
 
 colA, colB = st.columns([1, 1])
 with colA:
-    pm_client = st.text_input("PM Client", "John Client")
+    pm_client = st.text_input("Client (Project Management)", "John Client")
 with colB:
-    pm_sp = st.text_input("PM Service Provider", "Project PM")
-mg_client = st.text_input("Mgmt Client", "Mgmt Client")
-mg_sp = st.text_input("Mgmt Service Provider", "Umang Naik")
+    pm_sp = st.text_input("Service Provider (Project Management)", "Project PM")
+
+colA, colB = st.columns([1, 1])
+with colA:
+    mg_client = st.text_input("Client (Management)", "Mgmt Client")
+with colB:
+    mg_sp = st.text_input("Service Provider (Management)", "Umang Naik")
+
 scope_text = st.text_area("Scope / Responsibilities", "Describe scope here...")
 ser_del = st.text_area("Services / Deliverables", "Describe Services/Del. here...")
 if option == "Fixed Fee":
@@ -160,8 +165,9 @@ if option == "Change Order":
 generated_date = datetime.today().strftime("%B %d, %Y")
 start_str = start_date.strftime("%B %d, %Y")
 end_str = end_date.strftime("%B %d, %Y")
-sow_str = sow_start_date.strftime("%B %d, %Y")
-sow_end = sow_end_date.strftime("%B %d, %Y")
+if option == "Change Order":
+    sow_str = sow_start_date.strftime("%B %d, %Y")
+    sow_end = sow_end_date.strftime("%B %d, %Y")
 
 # --- Helper to calculate working days (like Excel NETWORKDAYS) ---
 def networkdays(start_date, end_date):
