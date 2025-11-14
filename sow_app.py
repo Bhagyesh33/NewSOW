@@ -37,6 +37,8 @@ if 'generated_file_path' not in st.session_state:
     st.session_state.generated_file_path = None
 if 'file_data' not in st.session_state:
     st.session_state.file_data = None
+if 'reset_trigger' not in st.session_state:
+    st.session_state.reset_trigger = 0
 # --- Display UI Header ---
 
 # --- Convert local logo to base64 so HTML <img> can display it ---
@@ -130,6 +132,13 @@ def get_next_sow_number(peek_only=False):
 
     return current
 
+def reset_all_fields():
+    """Clear all form-related session state to reset inputs"""
+    keys_to_keep = ['should_increment_on_download', 'generated_file_path', 'file_data', 'reset_trigger']
+    keys_to_remove = [key for key in st.session_state.keys() if key not in keys_to_keep]
+    for key in keys_to_remove:
+        del st.session_state[key]
+    st.session_state.reset_trigger += 1
 
 # st.title("SOW Generator — Single Click Word SOW")
 # st.markdown("Fill fields below and click **Generate SOW**. Uses a Word template with Jinja placeholders.")
@@ -137,66 +146,68 @@ def get_next_sow_number(peek_only=False):
 # --- Upload or choose template ---
 st.markdown("<br>", unsafe_allow_html=True)
 
-template_file = st.file_uploader("Upload client Word template (.docx)", type=["docx"])
+template_file = st.file_uploader("Upload client Word template (.docx)", type=["docx"], key=f"template_{st.session_state.reset_trigger}")
 
 # --- Basic fields ---
 Client_Name = st.selectbox(
     "Select Client",
-    ("BSC", "Abiomed", "Cognex", "Itaros")      
+    ("BSC", "Abiomed", "Cognex", "Itaros"),
+    key=f"client_{st.session_state.reset_trigger}"      
 )
 option = st.selectbox(
     "Select Project Type",
-    ("Fixed Fee", "T&M", "Change Order")      
+    ("Fixed Fee", "T&M", "Change Order"),
+    key=f"project_type_{st.session_state.reset_trigger}"      
 )
 
 if option == "Change Order":
-    Change = st.text_input("Change Order", "10")
+    Change = st.text_input("Change Order", "10", key=f"change_{st.session_state.reset_trigger}")
 colA, colB = st.columns([1, 1])
 with colA:
     auto_sow_num = get_next_sow_number(peek_only=True)
-    sow_num = st.text_input("SOW Number", str(auto_sow_num))
+    sow_num = st.text_input("SOW Number", str(auto_sow_num), key=f"sow_num_{st.session_state.reset_trigger}")
 
 
 
 with colB:
-    sow_name = st.text_input("SOW Name", "SOW - Implementation")
+    sow_name = st.text_input("SOW Name", key=f"sow_name_{st.session_state.reset_trigger}")
 
 if option == "Change Order":
     colA, colB = st.columns([1, 1])
     with colA:
-        sow_start_date = st.date_input("SOW Start Date", date.today())
+        sow_start_date = st.date_input("SOW Start Date", date.today(), key=f"sow_start_{st.session_state.reset_trigger}")
     with colB:
-        sow_end_date = st.date_input("SOW End Date", date.today())
+        sow_end_date = st.date_input("SOW End Date", date.today(), key=f"sow_end_{st.session_state.reset_trigger}")
 
 colA, colB = st.columns([1, 1])
 with colA:
-    start_date = st.date_input("Start Date", date.today())
+    start_date = st.date_input("Start Date", date.today(), key=f"start_date_{st.session_state.reset_trigger}")
 with colB:
-    end_date = st.date_input("End Date", date.today())
+    end_date = st.date_input("End Date", date.today(), key=f"end_date_{st.session_state.reset_trigger}")
 
 colA, colB = st.columns([1, 1])
 with colA:
-    pm_client = st.text_input("Client (Project Management)", "John Client")
+    pm_client = st.text_input("Client (Project Management)", key=f"pm_client_{st.session_state.reset_trigger}")
 with colB:
-    pm_sp = st.text_input("Service Provider (Project Management)", "Project PM")
+    pm_sp = st.text_input("Service Provider (Project Management)", key=f"pm_sp_{st.session_state.reset_trigger}")
 
 colA, colB = st.columns([1, 1])
 with colA:
-    mg_client = st.text_input("Client (Management)", "Mgmt Client")
+    mg_client = st.text_input("Client (Management)", key=f"mg_client_{st.session_state.reset_trigger}")
 with colB:
-    mg_sp = st.text_input("Service Provider (Management)", "Umang Naik")
+    mg_sp = st.text_input("Service Provider (Management)", key=f"mg_sp_{st.session_state.reset_trigger}")
 
-scope_text = st.text_area("Scope / Responsibilities", "Describe scope here...")
-ser_del = st.text_area("Services / Deliverables", "Describe Services/Del. here...")
+scope_text = st.text_area("Scope / Responsibilities", key=f"scope_{st.session_state.reset_trigger}")
+ser_del = st.text_area("Services / Deliverables", key=f"ser_del_{st.session_state.reset_trigger}")
 if option == "Fixed Fee":
-    Fees_al = st.text_input("Fees", "100")
+    Fees_al = st.text_input("Fees", key=f"fees_al_{st.session_state.reset_trigger}")
 
 if option == "Change Order":
     colA, colB = st.columns([1, 1])
     with colA:
-        Fees_co = st.text_input("Change Order Fees", "100")
+        Fees_co = st.text_input("Change Order Fees", key=f"fees_co_{st.session_state.reset_trigger}")
     with colB:
-        Fees_sow = st.text_input("SOW Fees", "100")  
+        Fees_sow = st.text_input("SOW Fees", key=f"fees_sow_{st.session_state.reset_trigger}")  
     
     difference = float(Fees_co) - float(Fees_sow)
 
@@ -419,4 +430,6 @@ if st.session_state.should_increment_on_download and st.session_state.file_data:
             get_next_sow_number(peek_only=False)  # Increment counter
             st.session_state.should_increment_on_download = False  # Reset flag
             st.session_state.file_data = None  # Clear file data
+            st.session_state.generated_file_path = None  # Clear file path
+            reset_all_fields()  # Clear all input fields
             st.rerun()  # Refresh to show updated SOW number
