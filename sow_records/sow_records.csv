@@ -1,7 +1,5 @@
 sow_num,sow_name,client,project_type,generated_date,start_date,end_date,total_value,resources,change_order,fees_co,fees_sow,difference,sow_start_date,sow_end_date,fees
-1039,,BSC,T&M,"November 17, 2025","November 17, 2025","November 17, 2025",800.0,"{""Role"":{""0"":""""},""Location"":{""0"":""""},""Start Date"":{""0"":1763337600000},""End Date"":{""0"":1763337600000},""Allocation %"":{""0"":100},""Hrs\/Day"":{""0"":8},""Rate\/hr ($)"":{""0"":100},""Estimated $"":{""0"":800.0}}",,,,,,,
-1040,bdeh,BSC,T&M,"November 17, 2025","November 17, 2025","November 17, 2025",800.0,"{""Role"":{""0"":""""},""Location"":{""0"":""""},""Start Date"":{""0"":1763337600000},""End Date"":{""0"":1763337600000},""Allocation %"":{""0"":100},""Hrs\/Day"":{""0"":8},""Rate\/hr ($)"":{""0"":100},""Estimated $"":{""0"":800.0}}",,,,,,,
-1041,change,BSC,Change Order,"November 24, 2025","November 24, 2025","November 24, 2025",,,10.0,600.0,100.0,500.0,"November 24, 2025","November 24, 2025",
-1042,,BSC,Fixed Fee,"November 24, 2025","November 24, 2025","November 24, 2025",,,,,,,,,
-1043,,BSC,Fixed Fee,"November 25, 2025","November 25, 2025","November 25, 2025",,,,,,,,,
-1044,,BSC,Fixed Fee,"November 25, 2025","November 25, 2025","November 25, 2025",,,,,,,,,1000
+159,bdeh,BSC,T&M,"November 17, 2025","November 17, 2025","November 17, 2025",800.0,"{""Role"":{""0"":""""},""Location"":{""0"":""""},""Start Date"":{""0"":1763337600000},""End Date"":{""0"":1763337600000},""Allocation %"":{""0"":100},""Hrs\/Day"":{""0"":8},""Rate\/hr ($)"":{""0"":100},""Estimated $"":{""0"":800.0}}",,,,,,,
+100,change,BSC,Change Order,"November 24, 2025","November 24, 2025","November 24, 2025",,,10.0,600.0,100.0,500.0,"November 24, 2025","November 24, 2025",
+860,,BSC,Fixed Fee,"November 26, 2025","November 26, 2025","November 26, 2025",,,,,,,,,
+

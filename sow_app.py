@@ -251,8 +251,20 @@ if page == "SOW Generator":
         Change = st.text_input("Change Order", "10", key=f"change_{st.session_state.reset_trigger}")
     colA, colB = st.columns([1, 1])
     with colA:
-        auto_sow_num = get_next_sow_number(peek_only=True)
-        sow_num = st.text_input("SOW Number", str(auto_sow_num), key=f"sow_num_{st.session_state.reset_trigger}")
+        if option in ["T&M", "Fixed Fee"]:
+            auto_sow_num = get_next_sow_number(peek_only=True)
+            sow_num = st.text_input(
+                "SOW Number",
+                str(auto_sow_num),
+                key=f"sow_num_{st.session_state.reset_trigger}"
+            )
+        else:
+            sow_num = st.text_input(
+                "SOW Number",
+                "",
+                key=f"sow_num_{st.session_state.reset_trigger}",
+                placeholder="Enter SOW number manually for Change Order"
+            )
 
 
 
@@ -555,7 +567,9 @@ if page == "SOW Generator":
 
             # This block runs when download is clicked
             if st.session_state.should_increment_on_download:
-                get_next_sow_number(peek_only=False)  # Increment counter
+                # Increment ONLY for T&M & Fixed Fee
+                if option in ["T&M", "Fixed Fee"]:
+                    get_next_sow_number(peek_only=False)
                 st.session_state.should_increment_on_download = False  # Reset flag
                 st.session_state.file_data = None  # Clear file data
                 st.session_state.generated_file_path = None  # Clear file path
